@@ -31,17 +31,14 @@ os_needed = "Darwin"
 # check credentials
 # if there is a problem print error message and exit
 command = 'uname -s'
-c = Connection(host, login)
-uname = c.run('uname -s', hide=True)
+connection = Connection(host, login)
+uname = connection.run('uname -s', hide=True)
 msg = "Ran {0.command!r} on {0.connection.host}, got stdout:\n{0.stdout}"
 print(msg.format(uname))
 
+macos = False
 if os_needed in uname.stdout:
-    command = "ls"
-    result = c.run(command, hide=True).stdout.strip()
-    print(result)
-
-
+    macos = True
 
 
 # 4 install PostgreSQL
@@ -51,9 +48,9 @@ if os_needed in uname.stdout:
 # if the version is previous write exception message
 # if the version could be updated -- update
 # if there is noo version install new version
-
-i = Installer()
-i.install_on_macos(16)
+if macos:
+    installer = Installer(connection)
+    installer.install_on_macos(16)
 
 
 # 5 configure PostgreSQL to receive remote requests
