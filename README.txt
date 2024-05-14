@@ -12,6 +12,7 @@ Requirements
 
 Usage:
 pyhton pg-remote-install.py IP username
+# I use Python 3.9.6
 
 
 So, the script contains the following parts:
@@ -39,7 +40,7 @@ Tasks:
 - use https://docs.python.org/3/library/argparse.html
 - params are: remote_host, ssh_login, db_login, db_user
 remote_host is used to connect via ssh
-ssh_login is used to connect via ssh
+ssh_login is used to connect via ssh, ssh_login should be allowed to run sudo -u db_login without password prompt
 db_login is used to run db server
 db_user is created in the db for site admin or smth like that.
 

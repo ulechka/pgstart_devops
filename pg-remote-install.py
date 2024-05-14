@@ -31,15 +31,18 @@ installer = Installer(host, ssh_login, db_login, db_user)
 
 # run local script to check DB is working
 
-add_pass="echo \"{}:5432:mydb:{}:paroleparole\" >> ~/.pgpass".format(host, db_user)
-subprocess.run(add_pass)
-chmod="chmod 0600 ~/.pgpass"
-subprocess.run(chmod)
-
-select="psql -h {} -p 5432 -U {} -w -d mydb -c \"SELECT 1;\"".format(host, db_user)
-subprocess.run(select)
-
-print("you can run the following command on your terminal to chech if db is available:\n {}".format(select))
+# add_pass='echo \"{}:5432:mydb:{}:paroleparole\" >> ~/.pgpass'.format(host, db_user)
+# print(add_pass)
+# subprocess.run(add_pass)
+# chmod="chmod 0600 ~/.pgpass"
+# print(chmod)
+# subprocess.run(chmod)
+#
+# select="psql -h {} -p 5432 -U {} -w -d mydb -c \'SELECT 1;\'".format(host, db_user)
+# print(select)
+# subprocess.run(select)
+#
+# print("you can run the following command on your terminal to chech if db is available:\n {}".format(select))
 
 
 

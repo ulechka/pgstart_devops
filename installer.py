@@ -50,28 +50,31 @@ class Installer:
             
             # commands
             install="/usr/local/bin/brew install postgresql@{}".format(version)
-            su_wrapper="su postgres -c '{}'"
-            initdb="{0}initdb --locale=C -E UTF-8 /Users/{1}/Documents/pgsql/data".format(bin_path, self.ssh_login)
-            start="{}pg_ctl -D /Users/{}/Documents/pgsql/data -l logfile start".format(bin_path, self.ssh_login)
-            cd="cd {}".format(data_path)
+            #
+            su_wrapper="sudo -u postgres {}"
+            initdb="{0}initdb --locale=C -E UTF-8 {1}".format(bin_path, data_path)
+            start="{}pg_ctl -D {} -l logfile start".format(bin_path, data_path)
+
             # 5 configure PostgreSQL to receive remote requests
-            conf_server="sed \"s/#listen_addresses = \'localhost\'/listen_addresses = \'*\'/g\" postgresql.conf >new_conf"
-            replace_conf="mv new_conf postgresql.conf"
-            conf_hba="echo \"host    mydb            {}        0.0.0.0/0               md5\" >> pg_hba.conf".format(self.db_user)
+            conf_server="sed -i '' \"s/#listen_addresses = \'localhost\'/listen_addresses = \'*\'/g\" {}postgresql.conf".format(data_path)
+            conf_hba="echo \"host    mydb            {0}        0.0.0.0/0               md5\" >> {1}pg_hba.conf".format(self.db_user, data_path)
             createdb="{}createdb mydb".format(bin_path)
             create_dbuser="{}psql -p 5432 -U {} -d mydb -c \"CREATE ROLE {} WITH LOGIN PASSWORD 'paroleparole';\"".format(bin_path, self.db_login, self.db_user)
             # 
-            restart="{}pg_ctl restart -D {}".format(bin_path, self.db_login, data_path)
+            restart="{}pg_ctl restart -D {}".format(bin_path, data_path)
             autorun="/usr/local/bin/brew services start postgresql@16"
             
             list_of_commmands = [
                 install,
                 su_wrapper.format(initdb),
                 su_wrapper.format(start),
-                cd, conf_server, replace_conf, conf_hba,
-                createdb,
-                create_dbuser,
-                restart,
+                su_wrapper.format(conf_server),
+                su_wrapper.format(conf_hba),
+                su_wrapper.format(createdb),
+                su_wrapper.format(create_dbuser),
+                su_wrapper.format(restart),
+
+                # who should command brew to autorun ps?
                 autorun
             ]
             
