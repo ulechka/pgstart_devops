@@ -1,59 +1,45 @@
 import argparse
-from fabric import Connection
+import subprocess
 from installer import Installer
 
-# 1 get params
-# programm has 1 required param: IP or domain
-# if the number of params less than 1 write usage
-# usage: python pg-remote-install.py server.domain.name.or.ip [login]
-# if the first param is not the address write usage and error message and exit
-# if there is the second parameter on input it should be login
-# if there is no second param use admin as default login
-# if there is more than 2 params write usage and exit
+# Parse parameters
+# programm has 4 parameters:
+# remote_host, ssh_login, db_login, db_user
+# remote_host is used to connect via ssh
+# ssh_login is used to connect via ssh
+# db_login is used to run db server
+# db_user is created in the db for site admin or smth like that.
 
 parser = argparse.ArgumentParser("pg-remote-install")
 parser.add_argument("remote_host", help="Remote host is a domain name or IP", type=str)
-parser.add_argument("remote_login", nargs='?', help="Remote login is a user name on the remote host", type=str, default="admin")
+parser.add_argument("ssh_login", nargs='?', help="Remote login is the user on the remote host to install software", type=str, default="admin")
+parser.add_argument("db_login", nargs='?', help="Remote login is the user on the remote host to run db server", type=str, default="postgres")
+parser.add_argument("db_user", nargs='?', help="Remote login is the user on the remote host to run db server", type=str, default="siteadmin")
 args = parser.parse_args()
 host = args.remote_host
-login = args.remote_login
-print(host)
-print(login)
+ssh_login = args.ssh_login
+db_login = args.db_login
+db_user = args.db_user
+print("Run with params: {} {} {} {}".format(host, ssh_login, db_login, db_user))
 
 # maybe need to check remote_host param, maybe it would be checked by ssh connection module
 #TODO: test with different mistakes in remote host param
 #TODO: test without mistakes
 
-# 2 assumme some state of remote host system
-os_needed = "Darwin"
+installer = Installer(host, ssh_login, db_login, db_user)
+# installer.install()
 
-# 3 connect via ssh
-# check credentials
-# if there is a problem print error message and exit
-command = 'uname -s'
-connection = Connection(host, login)
-uname = connection.run('uname -s', hide=True)
-msg = "Ran {0.command!r} on {0.connection.host}, got stdout:\n{0.stdout}"
-print(msg.format(uname))
+# run local script to check DB is working
 
-macos = False
-if os_needed in uname.stdout:
-    macos = True
+add_pass="echo \"{}:5432:mydb:{}:paroleparole\" >> ~/.pgpass".format(host, db_user)
+subprocess.run(add_pass)
+chmod="chmod 0600 ~/.pgpass"
+subprocess.run(chmod)
 
+select="psql -h {} -p 5432 -U {} -w -d mydb -c \"SELECT 1;\"".format(host, db_user)
+subprocess.run(select)
 
-# 4 install PostgreSQL
-# check if some version of ps has been istalled
-# TODO: check if some version of ps has been istalled
-# if the version is the last? do nothing
-# if the version is previous write exception message
-# if the version could be updated -- update
-# if there is noo version install new version
-if macos:
-    installer = Installer(connection)
-    installer.install_on_macos(16)
-
-
-# 5 configure PostgreSQL to receive remote requests
+print("you can run the following command on your terminal to chech if db is available:\n {}".format(select))
 
 
 

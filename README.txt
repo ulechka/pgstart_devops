@@ -1,48 +1,51 @@
-The script installs PostgreSQL on the remote host.
-The programm is written on python.
+Python script installs PostgreSQL on the remote host.
 
 The script uses ssh connection,
-it installs PostgreSQL on the remote host,
-and configure it to receive connections.
+it installs PostgreSQL on the remote macos,
+and configure db to receive connections.
 
-So, the script consists of the following parts:
-1) it should take parameters for the connection to the remote host: login, ip (use public key to connect)
-# in the task definition there is no login in parameters, so the login would be predefined if empty
-# predefined login is admin (web hosters default) or root (linux/unix default to administrate os)
-# I think, optimal solution is admin with sudo if it is needed to install postgresql (TODO: look for this info in PS docs)
+Requirements
+1) remote host with macos, its IP and username for ssh, there should be keys to access remote host;
+2) username should have permission to run brew;
+3) macos should have developer tools installed. it could be achived by running xcode-select --install, but it shows UI dialog with the request, that should be accepted;
+4) that's python scripts, you need the Fabric library ($: pip install fabric)
+
+Usage:
+pyhton pg-remote-install.py IP username
+
+
+So, the script contains the following parts:
+1) it takes parameters for the connection to the remote host: IP and login (use public key to connect)
+# in the task definition there is no username parameter, so the username would be postgres if empty
+# I think, optimal solution is admin with sudo if it is needed to install postgresql, I don't understand if it's needed to use 2 users to install and run postgres. Mybe it's one user, but the permission will be changed after.
 
 2) it should know what kind of OS is on the remote host
 # I can make an assumption here, that it is macos, because I have macos to work on
-# also, check the differencies of implementations for macos and linux on the python described in the py documentation
-# also, check the differencies of implementations in the PS docs
 
 3) it connects via ssh to the remote host
 # it may need password, but I think it is not secure, so I omit this option
 # this program works only with public key on the remote host
 
 4) it installs PostgreSQL
-# it needs some installer or source to install
-# it should be downloaded from internet
-# * maybe it is downloaded on the remote host (if the host is connected to the internet for outgoing connections),
-# * and maybe it's downloaded local, and then it is copied to the remote host via ssh/scp
-# TODO: look for installation instruction
-# so here: remote download - install or local download - remote copy - install
-
+# it uses Homebrew
 # check if it has installed PS
 
+5) it runs db server
 
-5) configure PostgreSQL to receive remote requests
-# TODO: read documentation
-# test the result with request "SELECT 1" from local host
+6) configure PostgreSQL to receive remote requests
 
 Tasks:
 1) parse params
 - use https://docs.python.org/3/library/argparse.html
-- params are: remote_host, remote_login
+- params are: remote_host, ssh_login, db_login, db_user
+remote_host is used to connect via ssh
+ssh_login is used to connect via ssh
+db_login is used to run db server
+db_user is created in the db for site admin or smth like that.
 
 2) take system info
-- use sysinfo = uname bash utility
-- check if "Darwin" in sysinfo.stdout to ensure that that is macos
+- use uname
+- check if "Darwin" in result to ensure that this is macos
 
 3) connects via ssh to the remote host
 - use https://www.fabfile.org/
@@ -54,23 +57,13 @@ Tasks:
 - write test bash code to install on macos, check if you don't have permission to install
 - write python code to install on macos and check for errors and exceptions ()
 
-if it is fresh install, test installation: 
-- createdb mydb OR /usr/local/pgsql/bin/createdb mydb
-- dropdb mydb
-- init db and check config file: "A default pg_hba.conf file is installed when the data directory is initialized by initdb. It is possible to place the authentication configuration file elsewhere, however; see the hba_file configuration parameter."
+check local script for details
 
-- save PGHOST and PGPORT info in the file, provide it to the site admin
-set Path:
-PATH=/usr/local/pgsql/bin:$PATH
-export PATH
-set manPath:
-MANPATH=/usr/local/pgsql/share/man:$MANPATH
-export MANPATH
 
 5) configure db to receive remote connections
 - use documentation 
-- check if there is 'admin' db user, if it isn't create one:
-CREATE ROLE admin WITH LOGIN PASSWORD '<here some password>'
+- check if there is 'postgres' db user, if it isn't create one:
+CREATE ROLE postgres WITH LOGIN PASSWORD 'parole'
 - check postgresql.conf, what I think I need to change
 
 6) update README and write how to use, 
