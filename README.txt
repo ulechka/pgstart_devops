@@ -7,34 +7,42 @@ and configure db to receive connections.
 Requirements
 1) remote host with macos, its IP and username for ssh, there should be keys to access remote host;
 2) username should have permission to run brew;
-3) macos should have developer tools installed. it could be achived by running xcode-select --install, but it shows UI dialog with the request, that should be accepted;
-4) that's python scripts, you need the Fabric library ($: pip install fabric)
+3) macos should have developer tools installed. It could be achived by running `xcode-select --install`. Note: it shows UI dialog with the request, that should be accepted;
+4) that's python script, using Python 3.9.6 and the Fabric library (~: pip install fabric)
 
 Usage:
-pyhton pg-remote-install.py IP username
-# I use Python 3.9.6
+python pg-remote-install [-h] remote_host [ssh_login] [db_login] [db_user]
+remote_host is used to connect via ssh
+ssh_login is used to connect via ssh, ssh_login should be allowed to run sudo -u db_login without password prompt
+db_login is used to run db server
+db_user is created in the db for site admin or smth like that.
+
 
 
 So, the script contains the following parts:
 1) it takes parameters for the connection to the remote host: IP and login (use public key to connect)
-# in the task definition there is no username parameter, so the username would be postgres if empty
-# I think, optimal solution is admin with sudo if it is needed to install postgresql, I don't understand if it's needed to use 2 users to install and run postgres. Mybe it's one user, but the permission will be changed after.
+# in the task definition there is no ssh_login parameter, so the ssh_login would be admin if empty
+# in the task definition there is no db_login parameter, so the db_login would be postgres if empty
+# in the task definition there is no db_user parameter, so the db_user would be siteadmin if empty
 
 2) it should know what kind of OS is on the remote host
 # I can make an assumption here, that it is macos, because I have macos to work on
+# TODO: support other systems 
 
 3) it connects via ssh to the remote host
 # it may need password, but I think it is not secure, so I omit this option
 # this program works only with public key on the remote host
 
-4) it installs PostgreSQL
-# it uses Homebrew
-# check if it has installed PS
+4) it installs PostgreSQL using Homebrew
 
-5) it runs db server
+5) it runs Postgres DB server under db_user
 
-6) configure PostgreSQL to receive remote requests
+6) edit config files to enable receiving remote requests
 
+7) creates db_user with no Super-User permissions, but with password. Pasword is saved in the local file ~/.pgpass for psql client.
+
+
+The following text is my plan I worked by
 Tasks:
 1) parse params
 - use https://docs.python.org/3/library/argparse.html
@@ -59,7 +67,6 @@ db_user is created in the db for site admin or smth like that.
 - write python code to install on macos and check for errors and exceptions ()
 
 check local script for details
-
 
 5) configure db to receive remote connections
 - use documentation 
